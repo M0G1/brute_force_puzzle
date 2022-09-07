@@ -23,18 +23,17 @@ public class TriShape {
      * @param triangles array with 2 dimensional index. First - row. Second - collumn.
      * */
     public TriShape(int[][] triangles) {
-        this.tri = triangles; // trasformMatrixIndexToArrayIndex(triangles);
+        Arrays.sort(triangles,(o1, o2) -> {
+            if (o1[0] - o2[0] != 0)
+                return o1[0] - o2[0];
+            if (o1[1] - o2[1] != 0)
+                return o1[1] - o2[1];
+            return 0;
+        });
+        this.tri = triangles;
         this.outscribedRect = getOutscribedRect(triangles);
     }
 
-//    /***
-//     * @param triangles array with index in matrix.
-//     * @param outscribedRect size of matrix.
-//     * */
-//    public TriShape(int[] triangles, Rect outscribedRect) {
-//        this.triangles = triangles;
-//        this.outscribedRect = outscribedRect;
-//    }
 
     public void recalculateOutscribedRect() {
         outscribedRect = new Rect(0, 0);
@@ -50,9 +49,10 @@ public class TriShape {
     }
 
     private static Rect getOutscribedRect(int[][] triangles) {
-        int height = triangles.length;
+        int height = Arrays.stream(triangles).mapToInt(el -> el[0]).max().orElse(0);
         int weight = Arrays.stream(triangles).mapToInt(el -> el[1]).max().orElse(0);
         weight = weight > 0 ? weight + 1 : 0; // index to size
+        height = height > 0 ? height + 1 : 0; // index to size
         return new Rect(weight, height);
     }
 
