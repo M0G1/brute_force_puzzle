@@ -1,6 +1,7 @@
 package com.company;
 
 import com.company.model.Rect;
+import com.company.model.TriPos;
 import com.company.model.TriShape;
 import com.company.util.color.BackColor;
 import com.company.util.color.Color;
@@ -8,8 +9,6 @@ import com.company.util.color.TextColor;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static com.company.util.color.Color.colorize;
 
 public class Drawing {
     public static String bColor = BackColor.WHITE;
@@ -30,6 +29,59 @@ public class Drawing {
 
 
     public static String draw(TriShape triShape, String textColor, String backgroundColor) {
+        TriPos[] tri = triShape.getPoses();
+        StringBuilder ans = new StringBuilder(
+                triShape.getOutscribedRect().getSquare() * 6 + // triangle str size. I have forgotten than mean - 6
+                        TriPos.DIMENSION * tri.length *                 // Arrays.stream(tri).mapToInt(value -> value.length).sum() // int[][]tri
+                                (textColor.length() + backgroundColor.length() + Color.RESET.length()) // it may be wrong
+        );
+        int symPerSubRow = fillStringBuilder(ans, triShape.getOutscribedRect());
+        for (TriPos pos : tri) {
+            int y = pos.getY(), x = pos.getX();
+            int fromSub1, fromSub2, toSub1, toSub2;
+            int halfX = x / 2;
+            if ((y & 1) == 0) { // odd
+                if ((x & 1) == 0) {
+                    fromSub1 = halfX * wPL;
+                    toSub1 = fromSub1 + wPL;
+                    fromSub2 = oCSL + wPL * halfX;
+                    toSub2 = fromSub2 + 2 * oCSL;
+                } else {
+                    fromSub1 = wPL - oCSL + halfX * wPL;
+                    toSub1 = fromSub1 + 2 * oCSL;
+                    fromSub2 = 2 * oCSL + wPL * halfX;
+                    toSub2 = fromSub2 + wPL;
+                }
+            } else {
+                if ((x & 1) == 0) {
+                    fromSub1 = oCSL + wPL * halfX;
+                    toSub1 = fromSub1 + 2 * oCSL;
+                    fromSub2 = wPL * halfX;
+                    toSub2 = fromSub2 + wPL;
+                } else {
+                    fromSub1 = 2 * oCSL + wPL * halfX;
+                    toSub1 = fromSub1 + wPL;
+                    fromSub2 = wPL - oCSL + halfX * wPL;
+                    toSub2 = fromSub2 + 2 * oCSL;
+                }
+            }
+            fromSub1 += 2 * y * symPerSubRow;
+            fromSub2 += (2 * y + 1) * symPerSubRow;
+            toSub1 += (2 * y * symPerSubRow);
+            toSub2 += ((2 * y + 1) * symPerSubRow);
+            if (((y + x) & 1) == 0) {
+                ans.replace(fromSub1, toSub1, getColorizedEvenSubTri(textColor, backgroundColor));
+                ans.replace(fromSub2, toSub2, getColorizedEvenSubTri2(textColor, backgroundColor));
+            } else {
+                ans.replace(fromSub1, toSub1, getColorizedOddSubTri(textColor, backgroundColor));
+                ans.replace(fromSub2, toSub2, getColorizedOddSubTri2(textColor, backgroundColor));
+            }
+        }
+        return ans.toString();
+    }
+
+
+    public static String oldDraw(TriShape triShape, String textColor, String backgroundColor) {
         int[][] tri = triShape.getTri();
         StringBuilder ans = new StringBuilder(
                 triShape.getOutscribedRect().getSquare() * 6 + // triangle str size
@@ -80,6 +132,7 @@ public class Drawing {
         }
         return ans.toString();
     }
+
 
     private static int fillStringBuilder(StringBuilder builder, Rect rect) {
         int blockCnt = Math.round((float) rect.getWeight() / 2);

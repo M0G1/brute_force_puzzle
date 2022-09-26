@@ -11,8 +11,8 @@ public class Rect {
     private int square;
 
     public Rect(int weight, int height) {
-        this.weight = weight;
-        this.height = height;
+        this.weight = Math.max(weight, 1);
+        this.height = Math.max(height, 1);
         this.square = weight * height;
     }
 
